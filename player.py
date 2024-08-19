@@ -6,4 +6,7 @@ class Player:
         self.inventory = []
 
     def send_message(self, message):
-        self.client.send(f"{message}\n".encode())
+        try:
+            self.client.send(f"{message}\n".encode('utf-8'))
+        except:
+            print(f"Error sending message to {self.name}")
