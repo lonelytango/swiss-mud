@@ -23,13 +23,6 @@ class Database:
                     inventory TEXT
                 )
             ''')
-            cursor.execute('''
-                CREATE TABLE IF NOT EXISTS player_sessions (
-                    player_id TEXT PRIMARY KEY,
-                    username TEXT NOT NULL,
-                    FOREIGN KEY (username) REFERENCES users(username)
-                )
-            ''')
             conn.commit()
 
     def login(self, client):
@@ -47,10 +40,7 @@ class Database:
             
             if result and result[0] == hashed_password:
                 client.send("Login successful!\n".encode('utf-8'))
-                player_id = str(uuid.uuid4())
-                cursor.execute('INSERT INTO player_sessions (player_id, username) VALUES (?, ?)', (player_id, username))
-                conn.commit()
-                return player_id, True
+                return username, True
             else:
                 client.send("Invalid username or password.\n".encode('utf-8'))
                 return None, False
@@ -79,16 +69,6 @@ class Database:
         client.send("Registration successful! You can now log in.\n".encode('utf-8'))
         return None, False
 
-    def get_username(self, player_id):
-        with sqlite3.connect(self.db_name) as conn:
-            cursor = conn.cursor()
-            cursor.execute('SELECT username FROM player_sessions WHERE player_id = ?', (player_id,))
-            result = cursor.fetchone()
-            if result:
-                return result[0]
-            else:
-                return None
-
     def save_player_data(self, player):
         with sqlite3.connect(self.db_name) as conn:
             cursor = conn.cursor()
@@ -111,9 +91,3 @@ class Database:
             else:
                 player.current_room = rooms['Center']  # Default room
                 player.inventory = []
-
-    def remove_player_session(self, player_id):
-        with sqlite3.connect(self.db_name) as conn:
-            cursor = conn.cursor()
-            cursor.execute('DELETE FROM player_sessions WHERE player_id = ?', (player_id,))
-            conn.commit()

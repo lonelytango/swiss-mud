@@ -68,17 +68,17 @@ class MUDServer:
                 choice = client.recv(1024).decode('utf-8').strip().lower()
                 
                 if choice == 'login':
-                    player_id, authenticated = self.db.login(client)
+                    username, authenticated = self.db.login(client)
                 elif choice == 'register':
-                    player_id, authenticated = self.db.register(client)
+                    username, authenticated = self.db.register(client)
                 else:
                     client.send("Invalid choice. Please try again.\n".encode('utf-8'))
 
-            if not authenticated or player_id is None:
+            if not authenticated or username is None:
                 client.close()
                 return
 
-            player = Player(self.db.get_username(player_id), client)
+            player = Player(username, client)
             self.players[player_id] = player
             self.db.load_player_data(player, self.rooms)
             self.move_player(player, player.current_room)
@@ -111,7 +111,6 @@ class MUDServer:
 
     def remove_player(self, player_id):
         if player_id in self.players:
-            self.db.remove_player_session(player_id)
             player = self.players[player_id]
             print(f"{player.name} has disconnected")
             if player.current_room:
